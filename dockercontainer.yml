@@ -1,0 +1,48 @@
+- hosts: localhost
+  vars_prompt:
+  - name: cont_name
+    prompt: "Enter Your Docker Container Name :"
+    private: no
+  tasks:
+  - name: Installing Docker SDK For Ansible
+    block:
+     - command: pip3 show docker-py
+
+    rescue:
+     - pip:
+        name: docker-py
+
+  - name: Starting Docker Services
+    block:
+     - service:
+        name: docker
+        state: started
+        enabled: yes
+    rescue:
+            - debug:
+                    msg: "Docker Services Started....."
+
+  - name: Stopping SELINUX Services
+    ansible.posix.selinux:
+      policy: targeted
+      state: permissive
+  - name: Pulling Docker Image
+    community.general.docker_image:
+      name: onkar17/on17ssh
+      pull: yes
+      state: present
+  - name: Launching A Docker Container
+    community.general.docker_container:
+      name: "{{ cont_name }}"
+      image: onkar17/on17ssh
+      state: started
+      interactive: yes
+      detach: yes
+      tty: yes
+      ports:
+              - "8091:80"
+
+  - name: Retrieving Docker Container IP
+    community.general.docker_container_info:
+      name: "{{ cont_name }}"
+    register: x
