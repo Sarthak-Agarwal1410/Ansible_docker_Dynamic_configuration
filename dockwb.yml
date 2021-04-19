@@ -1,0 +1,28 @@
+- hosts: docker
+  vars_prompt:
+  - name: html_file
+    private: no
+    prompt: "Enter Your HTML  File Name:"
+
+  - name: cont
+    private: no
+    prompt: "Enter Your HTML File Content:"
+
+  tasks:
+
+  - name: Installing HTTPD Services
+    package:
+      name: httpd
+      state: present
+
+  - name: Creating HTML File Inside Document Root
+    copy:
+      content: "{{ cont }}"
+      dest: "/var/www/html/{{ html_file }}.html"
+
+  - name: Starting HTTPD Service
+    command: /usr/sbin/httpd
+    register: cmd
+
+  - debug:
+      var: cmd.stderr
